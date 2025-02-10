@@ -1,21 +1,21 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Count
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
-from django.utils.timezone import now
-from blog.models import Post, Category, Comment
 from django.urls import reverse_lazy, reverse
-from django.views.generic import (CreateView, DeleteView, UpdateView)
+from django.utils.timezone import now
+from django.views.generic import CreateView, DeleteView, UpdateView
 from .forms import PostForm, CommentForm, UserEditForm
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from django.db.models import Count
+from blog.models import Post, Category, Comment
 
 
 User = get_user_model()
 
-POSTS_BY_PAGE = 10
+posts_by_page = 10
 
 
 # используем декоратор login_required,
@@ -46,7 +46,7 @@ def add_comment(request, post_id):
     return redirect('blog:post_detail', post_id=post_id)
 
 
-@login_required  
+@login_required
 def edit_comment(request, post_id, comment_id):
     # Находим запрошенный объект для редактирования по первичному ключу
     # или возвращаем 404 ошибку, если такого объекта нет.
@@ -66,7 +66,7 @@ def edit_comment(request, post_id, comment_id):
     return render(request, 'blog/comment.html', context)
 
 
-@login_required    
+@login_required
 def delete_comment(request, post_id, comment_id):
     """Удаление комментария"""
     # Получаем объект модели или выбрасываем 404 ошибку.
@@ -93,11 +93,25 @@ def filter_posts(posts):
     ).annotate(comment_count=Count('comments')).order_by('-pub_date')
 
 
+def paginate_obj(request, post_list, posts_by_page):
+    paginator = Paginator(post_list, posts_by_page)
+    page = request.GET.get('page')
+
+    try:
+        page_number = paginator.page(page)
+    except PageNotAnInteger:
+        # Если страница не является целым числом, возвращаем первую страницу.
+        page_number = paginator.page(1)
+    except EmptyPage:
+        # Если номер страницы больше, возвращаем последнюю.
+        page_number = paginator.page(paginator.num_pages)
+
+    return page_number
+
+
 def index(request):
     post_list = filter_posts(Post.objects)
-    paginator = Paginator(post_list, POSTS_BY_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginate_obj(request, post_list, posts_by_page)
     context = {"page_obj": page_obj}
     return render(request, "blog/index.html", context)
 
@@ -115,13 +129,10 @@ def post_detail(request, post_id):
 
 
 def category_posts(request, category_slug):
-    paginate_by = POSTS_BY_PAGE
     category = get_object_or_404(Category, is_published=True,
                                  slug=category_slug)
     post_list = filter_posts(category.posts)
-    paginator = Paginator(post_list, paginate_by)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginate_obj(request, post_list, posts_by_page)
     context = {"category": category,
                "page_obj": page_obj}
     return render(request, "blog/category.html", context)
@@ -140,9 +151,7 @@ def profile(request, username):
             pub_date__lte=now(),
             is_published=True
         ).annotate(comment_count=Count('comments')).order_by('-pub_date')
-    paginator = Paginator(post_list, POSTS_BY_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginate_obj(request, post_list, posts_by_page)
     context = {'profile': profile, 'page_obj': page_obj}
     return render(request, 'blog/profile.html', context)
 
@@ -156,16 +165,16 @@ class OnlyAuthorMixin(UserPassesTestMixin):
 
 class PostCreate(LoginRequiredMixin, CreateView):
     """Создание поста"""
-    
+
     model = Post
     form_class = PostForm
-    paginate_by = POSTS_BY_PAGE
+    paginate_by = posts_by_page
     template_name = 'blog/create.html'
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
-    
+
     def get_success_url(self):
         return reverse('blog:profile', kwargs={'username': self.object.author})
 
@@ -177,7 +186,7 @@ class EditPostView(OnlyAuthorMixin, UpdateView):
     pk_url_kwarg = 'post_id'
     form_class = PostForm
     template_name = 'blog/create.html'
-    
+
     def dispatch(self, request, *args, **kwargs):
         post = self.get_object()
         if post.author != self.request.user:

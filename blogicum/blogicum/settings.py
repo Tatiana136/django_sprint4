@@ -13,7 +13,9 @@ SECRET_KEY = 'django-insecure-6czy_#2^@o_hd1p_w=yl7(ciw_-&=nd0_q&v$fcwtw3z(w%&wx
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# позволит работать вашему проекту не только на локальной машине, но и на вашем домене
+ALLOWED_HOSTS = ['www.Tanya6.pythonanywhere.com',
+                 'Tanya6.pythonanywhere.com',]
 
 INTERNAL_IPS = [
     'localhost',
@@ -32,7 +34,6 @@ INSTALLED_APPS = [
     # Приложения над которыми работаю
     'blog.apps.BlogConfig',
     'pages.apps.PagesConfig',
-    #'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -43,7 +44,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'blogicum.urls'
@@ -137,4 +137,4 @@ CSRF_FAILURE_VIEW = 'pages.views.csrf_failure'
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
-EMAIL_FILE_PATH = BASE_DIR / 'sent_emails' 
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'

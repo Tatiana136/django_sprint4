@@ -92,11 +92,11 @@ class Post(BaseModel):
 
     def __str__(self):
         return str(self.title)
-    
+
     # Метод, сообщающий Django, как вычислять канонический URL-адрес объекта
     def get_absolute_url(self):
         return reverse("blog:post_detail", args={"pk": self.pk})
-    
+
 
 class Comment(BaseModel):
     author = models.ForeignKey(
@@ -118,6 +118,6 @@ class Comment(BaseModel):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         ordering = ('created_at',)
-    
+
     def __str__(self):
         return self.text[:60]
