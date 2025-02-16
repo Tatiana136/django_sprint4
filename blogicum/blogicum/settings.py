@@ -8,14 +8,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-6czy_#2^@o_hd1p_w=yl7(ciw_-&=nd0_q&v$fcwtw3z(w%&wx'
+SECRET_KEY = ''
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# позволит работать вашему проекту не только на локальной машине, но и на вашем домене
-ALLOWED_HOSTS = ['www.Tanya6.pythonanywhere.com',
-                 'Tanya6.pythonanywhere.com',]
+ALLOWED_HOSTS = []
 
 INTERNAL_IPS = [
     'localhost',
